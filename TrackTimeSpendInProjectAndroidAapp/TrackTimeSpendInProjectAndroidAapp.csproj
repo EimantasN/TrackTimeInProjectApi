@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API.cs" />
+    <Compile Include="CheckService.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Members.cs" />
     <Compile Include="Models\Error.cs" />
@@ -66,7 +67,9 @@
     <Compile Include="Models\WorkTask.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServiceRestart.cs" />
     <Compile Include="TaskFragment.cs" />
+    <Compile Include="WifiScanner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />

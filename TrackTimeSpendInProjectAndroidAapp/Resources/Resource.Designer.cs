@@ -3507,6 +3507,9 @@ namespace TrackTimeSpendInProjectAndroidAapp
 		public partial class String
 		{
 			
+			// aapt resource value: 0x7f0b002b
+			public const int CHANNEL_ID = 2131427371;
+			
 			// aapt resource value: 0x7f0b0000
 			public const int abc_action_bar_home_description = 2131427328;
 			
@@ -3605,6 +3608,12 @@ namespace TrackTimeSpendInProjectAndroidAapp
 			
 			// aapt resource value: 0x7f0b001f
 			public const int bottom_sheet_behavior = 2131427359;
+			
+			// aapt resource value: 0x7f0b002a
+			public const int channel_description = 2131427370;
+			
+			// aapt resource value: 0x7f0b0029
+			public const int channel_name = 2131427369;
 			
 			// aapt resource value: 0x7f0b0020
 			public const int character_counter_pattern = 2131427360;

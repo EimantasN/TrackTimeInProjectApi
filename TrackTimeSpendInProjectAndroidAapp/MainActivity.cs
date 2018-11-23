@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
+using Android.Net.Wifi;
 using Android.OS;
 using Android.Support.Design.Widget;
 using Android.Support.V4.App;
@@ -9,6 +10,7 @@ using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
 using Java.Lang;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SupportActionBar = Android.Support.V7.App.ActionBar;
@@ -43,6 +45,24 @@ namespace TrackTimeSpendInProjectAndroidAapp
 
             Android.Support.V7.App.ActionBar actionBar = SupportActionBar;
             actionBar.Hide();
+
+            if (!IsMyServiceRunning(typeof(CheckService)))
+            {
+                StartService(new Android.Content.Intent(this, typeof(CheckService)));
+            }
+        }
+
+        private bool IsMyServiceRunning(Type serviceClass)
+        {
+            ActivityManager manager = (ActivityManager)GetSystemService(Context.ActivityService);
+            foreach (ActivityManager.RunningServiceInfo service in manager.GetRunningServices(int.MaxValue))
+            {
+                if (serviceClass.Name == service.Service.ClassName)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void SetUpViewPager(ViewPager viewPager)
