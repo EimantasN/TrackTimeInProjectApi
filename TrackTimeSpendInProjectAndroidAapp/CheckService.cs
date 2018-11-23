@@ -12,6 +12,7 @@ using Android.Runtime;
 using Android.Support.V4.App;
 using Android.Views;
 using Android.Widget;
+using TrackTimeSpendInProjectAndroidAapp.Models;
 
 namespace TrackTimeSpendInProjectAndroidAapp
 {
@@ -21,13 +22,38 @@ namespace TrackTimeSpendInProjectAndroidAapp
         private bool Destroyed = false;
         public static WifiManager mWifiManager;
         WifiScanner mWifiScanReceiver;
+        private List<MemberModel> MemebersModelsList { get; set; }
+
+        private readonly string CurrentMemberName = "Eimantas";
         public override void OnCreate()
         {
             base.OnCreate();
+            Task.Run(() => UpdateMemebers());
             mWifiManager = (WifiManager)GetSystemService(Context.WifiService);
             RegisterReceiver(mWifiScanReceiver, new IntentFilter(WifiManager.ScanResultsAvailableAction));
             mWifiManager.StartScan();
             Task.Run(() => CheckAsync());
+        }
+
+        public async Task UpdateMemebers()
+        {
+            try
+            {
+                API Api = new API();
+                var members = await Api.GetMembers();
+
+                if (members != null && members.Count > 0)
+                {
+                    MemebersModelsList = new List<MemberModel>();
+                    foreach (var x in members)
+                    {
+                        MemebersModelsList.Add(x);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+            }
         }
 
         public async Task CheckAsync()
@@ -52,15 +78,78 @@ namespace TrackTimeSpendInProjectAndroidAapp
                 {
                     if (mWifiManager.ScanResults.ToList().Any(x => x.Ssid.ToLower().Contains("insidev")))
                     {
-                        CreateNotificationChannel();
                         Task.Run(() => Notification("Esi Startup", "Sveikas atvykęs į Pertraukties tašką"));
+                        if (!MemebersModelsList.First(x => x.Name.Contains(CurrentMemberName)).Active)
+                        {
+                            CreateNotificationChannel();
+                            Task.Run(() => Start());
+                            Task.Run(() => UpdateMemebers());
+                        }
                     }
                     else
                     {
                         Task.Run(() => Notification("Nesi Startup", ""));
+                        if (MemebersModelsList.First(x => x.Name.Contains(CurrentMemberName)).Active)
+                        {
+                            Task.Run(() => Stop());
+                            Task.Run(() => UpdateMemebers());
+                        }
                     }
                 }
                 await Task.Delay(10000);
+            }
+        }
+
+        public async Task Stop()
+        {
+            await Task.Run(() => SwichState(false));
+            await Task.Run(() => WorkAsync(false));
+        }
+
+        public async Task Start()
+        {
+            await Task.Run(() => SwichState(true));
+            await Task.Run(() => WorkAsync(true));
+        }
+
+        public async Task WorkAsync(bool status)
+        {
+            var member = MemebersModelsList.FirstOrDefault(x => x.Name.Contains(CurrentMemberName));
+            if (member != null)
+            {
+                API api = new API();
+                var RequestStatus = await api.Work(status, member);
+            }
+        }
+
+        public async Task SwichState(bool status)
+        {
+            bool Finded = false;
+            try
+            {
+                if (MemebersModelsList.Count > 0)
+                {
+                    var member = MemebersModelsList.FirstOrDefault(x => x.Name.Contains(CurrentMemberName));
+                    if (member != null)
+                    {
+                        Finded = true;
+                        member.Active = status;
+                        API api = new API();
+                        var response = await api.SetActive(member);
+                        if (response.Status)
+                        {
+                            Application.SynchronizationContext.Post(_ =>
+                            {
+                                member.Active = status;
+                            }, null);
+                        }
+                    }
+                }
+
+                Thread.Sleep(250);
+            }
+            catch (Exception e)
+            {
             }
         }
 
@@ -116,6 +205,7 @@ namespace TrackTimeSpendInProjectAndroidAapp
         public override void OnDestroy()
         {
             Destroyed = true;
+            Task.Run(() => Stop());
             base.OnDestroy();
             Intent broadcastIntent = new Android.Content.Intent(this, typeof(ServiceRestart));
 
@@ -125,7 +215,7 @@ namespace TrackTimeSpendInProjectAndroidAapp
 
         public override IBinder OnBind(Intent intent)
         {
-            throw new NotImplementedException();
+            return null;
         }
     }
 }

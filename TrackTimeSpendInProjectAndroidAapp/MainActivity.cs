@@ -32,9 +32,6 @@ namespace TrackTimeSpendInProjectAndroidAapp
             SupportToolbar toolbar = FindViewById<SupportToolbar>(Resource.Id.toolBar);
             SetSupportActionBar(toolbar);
 
-            //SupportActionBar ab = SupportActionBar;
-            //ab.SetHomeAsUpIndicator(Resource.Drawable.ic_menu);
-            //ab.SetDisplayHomeAsUpEnabled(true);
             TabLayout tabs = FindViewById<TabLayout>(Resource.Id.tabs);
 
             ViewPager viewPager = FindViewById<ViewPager>(Resource.Id.viewpager);

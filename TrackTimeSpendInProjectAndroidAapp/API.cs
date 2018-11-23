@@ -13,7 +13,7 @@ namespace TrackTimeSpendInProjectAndroidAapp
         {
             try
             {
-                RestClient Client = new RestClient("http://spendtime.insidev.lt/api/members/get");
+                RestClient Client = new RestClient("http://track.deveim.com/api/members/get");
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse response = await Client.ExecuteTaskAsync(request);
 
@@ -37,7 +37,7 @@ namespace TrackTimeSpendInProjectAndroidAapp
         {
             try
             {
-                RestClient Client = new RestClient("http://spendtime.insidev.lt/api/members/ChangeStatus");
+                RestClient Client = new RestClient("http://track.deveim.com/api/members/ChangeStatus");
                 RestRequest request = new RestRequest(Method.POST);
                 request.AddHeader("Content-Type", "application/json");
                 request.AddParameter("undefined", JsonConvert.SerializeObject(member), ParameterType.RequestBody);
@@ -65,9 +65,9 @@ namespace TrackTimeSpendInProjectAndroidAapp
                 RestClient Client = new RestClient();
 
                 if (status)
-                    Client.BaseUrl = new Uri("http://spendtime.insidev.lt/api/members/MemberStarted/" + DateTime.Now.ToString());
+                    Client.BaseUrl = new Uri("http://track.deveim.com/api/members/MemberStarted/" + DateTime.Now.ToString());
                 else
-                    Client.BaseUrl = new Uri("http://spendtime.insidev.lt/api/members/MemberStoped/" + DateTime.Now.ToString());
+                    Client.BaseUrl = new Uri("http://track.deveim.com/api/members/MemberStoped/" + DateTime.Now.ToString());
 
                 RestRequest Request = new RestRequest(Method.POST);
                 Request.AddHeader("Content-Type", "application/json");
