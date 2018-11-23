@@ -40,8 +40,6 @@ namespace TrackTimeSpendInProjectAndroidAapp
         public static RecyclerView.Adapter mAdapter;
         private RecyclerView mRecyclerView;
 
-        private Button Button;
-
         private TimeSpan SpendTime = new TimeSpan();
 
         private readonly DateTime StartedTime;
@@ -90,14 +88,6 @@ namespace TrackTimeSpendInProjectAndroidAapp
             mData.Adapter = mAdapter;
             mRecyclerView.SetAdapter(mAdapter);
 
-            //mData.Add(new MemberModel { Name = "Eimantas Noreika" });
-            //mData.Add(new MemberModel { Name = "Lukas Jokubauskas" });
-            //mData.Add(new MemberModel { Name = "Renaldas Štilpa" });
-
-            Button = rootView.FindViewById<Button>(Resource.Id.button);
-
-            Button.Click += Button_Click;
-
             mData.Add(null);
             Task.Run(() => UpdateMemebers());
             Task.Run(() => ShowActiveMembers());
@@ -118,26 +108,6 @@ namespace TrackTimeSpendInProjectAndroidAapp
 
         public async Task RefreshAsync()
         {
-            if (Started)
-            {
-                Application.SynchronizationContext.Post(_ =>
-                {
-                    Button.Text = "Stoping clock";
-                    Started = false;
-                }, null);
-
-                while (AcitveTimeAdding)
-                {
-                    System.Threading.Thread.Sleep(100);
-                }
-                Application.SynchronizationContext.Post(_ =>
-                {
-                    Button.Text = "Start";
-                }, null);
-
-                await Task.Run(() => WorkAsync(false));
-            }
-
             await UpdateMemebers();
             Application.SynchronizationContext.Post(_ => { refresh.Refreshing = false; }, null);
         }
@@ -188,7 +158,6 @@ namespace TrackTimeSpendInProjectAndroidAapp
             {
                 Application.SynchronizationContext.Post(_ =>
                 {
-                    Button.Visibility = ViewStates.Visible;
                     if (SpendTime.TotalMinutes != 0)
                     {
                         TimeContainer.Visibility = ViewStates.Visible;
@@ -420,54 +389,6 @@ namespace TrackTimeSpendInProjectAndroidAapp
                 }
             }, null);
         }
-
-        private void Button_Click(object sender, System.EventArgs e)
-        {
-            if (mData.Count > 1)
-            {
-                Task.Run(() => ClockButtonControlAsync());
-            }
-        }
-
-        public async Task ClockButtonControlAsync()
-        {
-            if (Button.Text != "Stoping clock")
-            {
-                if (Started)
-                {
-                    await Task.Run(() => SwichState(false));
-                    await Task.Run(() => WorkAsync(false));
-
-                    Application.SynchronizationContext.Post(_ =>
-                    {
-                        Button.Text = "Stoping clock";
-                        Started = false;
-                    }, null);
-
-                    while (AcitveTimeAdding)
-                    {
-                        System.Threading.Thread.Sleep(100);
-                    }
-                    Application.SynchronizationContext.Post(_ =>
-                    {
-                        Button.Text = "Start";
-                    }, null);
-                }
-                else
-                {
-                    await Task.Run(() => SwichState(true));
-                    await Task.Run(() => WorkAsync(true));
-
-                    Application.SynchronizationContext.Post(_ =>
-                    {
-                        Started = true;
-                        Button.Text = "Stop";
-                    }, null);
-                    Task.Run(() => CountTimeAsync());
-                }
-            }
-        }
-
 
         public async Task WorkAsync(bool status)
         {
