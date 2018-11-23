@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Net.Wifi;
 using Android.OS;
-using Android.Runtime;
 using Android.Support.V4.App;
-using Android.Views;
-using Android.Widget;
 using TrackTimeSpendInProjectAndroidAapp.Models;
 
 namespace TrackTimeSpendInProjectAndroidAapp
@@ -60,43 +56,58 @@ namespace TrackTimeSpendInProjectAndroidAapp
         {
             while (!Destroyed)
             {
-                if (mWifiManager == null)
+                try
                 {
-                    mWifiManager = (WifiManager)GetSystemService(Context.WifiService);
-                    RegisterReceiver(mWifiScanReceiver, new IntentFilter(WifiManager.ScanResultsAvailableAction));
-                    mWifiManager.StartScan();
-                    await Task.Delay(10000);
-                }
-
-                if (mWifiManager.ScanResults == null)
-                {
-                    mWifiManager.StartScan();
-                    await Task.Delay(10000);
-                }
-
-                if (mWifiManager.ScanResults.Count != 0)
-                {
-                    if (mWifiManager.ScanResults.ToList().Any(x => x.Ssid.ToLower().Contains("insidev")))
+                    if (mWifiManager == null)
                     {
-                        Task.Run(() => Notification("Esi Startup", "Sveikas atvykęs į Pertraukties tašką"));
-                        if (!MemebersModelsList.First(x => x.Name.Contains(CurrentMemberName)).Active)
+                        mWifiManager = (WifiManager)GetSystemService(Context.WifiService);
+                        RegisterReceiver(mWifiScanReceiver, new IntentFilter(WifiManager.ScanResultsAvailableAction));
+                        mWifiManager.StartScan();
+                        await Task.Delay(10000);
+                    }
+
+                    if (mWifiManager.ScanResults == null)
+                    {
+                        mWifiManager.StartScan();
+                        await Task.Delay(10000);
+                    }
+
+                    if (mWifiManager.ScanResults.Count != 0)
+                    {
+                        if (mWifiManager.ScanResults.ToList().Any(x => x.Ssid.ToLower().Contains("insidev")))
                         {
-                            CreateNotificationChannel();
-                            Task.Run(() => Start());
-                            Task.Run(() => UpdateMemebers());
+                            Task.Run(() => Notification("Esi Startup", "Sveikas atvykęs į Pertraukties tašką"));
+
+                            while (MemebersModelsList == null)
+                                await Task.Delay(1000);
+
+                            if (!MemebersModelsList.First(x => x.Name.Contains(CurrentMemberName)).Active)
+                            {
+                                CreateNotificationChannel();
+                                await Task.Run(() => Start());
+                                await Task.Run(() => UpdateMemebers());
+                            }
+                        }
+                        else
+                        {
+                            Task.Run(() => Notification("Nesi Startup", ""));
+
+                            while (MemebersModelsList == null)
+                                await Task.Delay(1000);
+
+                            if (MemebersModelsList.First(x => x.Name.Contains(CurrentMemberName)).Active)
+                            {
+                                await Task.Run(() => Stop());
+                                await Task.Run(() => UpdateMemebers());
+                            }
                         }
                     }
-                    else
-                    {
-                        Task.Run(() => Notification("Nesi Startup", ""));
-                        if (MemebersModelsList.First(x => x.Name.Contains(CurrentMemberName)).Active)
-                        {
-                            Task.Run(() => Stop());
-                            Task.Run(() => UpdateMemebers());
-                        }
-                    }
+                    await Task.Delay(10000);
                 }
-                await Task.Delay(10000);
+                catch (Exception e)
+                {
+                    Task.Run(() => Notification("Error", e.Message));
+                }
             }
         }
 
@@ -136,16 +147,8 @@ namespace TrackTimeSpendInProjectAndroidAapp
                         member.Active = status;
                         API api = new API();
                         var response = await api.SetActive(member);
-                        if (response.Status)
-                        {
-                            Application.SynchronizationContext.Post(_ =>
-                            {
-                                member.Active = status;
-                            }, null);
-                        }
                     }
                 }
-
                 Thread.Sleep(250);
             }
             catch (Exception e)
